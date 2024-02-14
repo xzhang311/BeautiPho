@@ -1,0 +1,2 @@
+# BeautiPho
+Generate beautiful photos
