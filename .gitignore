@@ -396,3 +396,12 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Model and data directory
+model_weights
+model_weights/
+model_weights/*
+data
+data/
+data/*
+
