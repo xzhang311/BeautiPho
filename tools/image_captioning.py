@@ -2,7 +2,6 @@ import requests
 from PIL import Image
 from transformers import AutoProcessor, Blip2ForConditionalGeneration
 import torch
-# from .utils import del_model, release_cache
 from pathlib import Path
 import streamlit as st
 
@@ -39,10 +38,6 @@ def caption_image(st, prompt = None):
         generated_ids = model.generate(**inputs, max_new_tokens=20)
         generated_text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0].strip()
         print(generated_text)
-        
-    # del_model(processor)
-    # del_model(model)
-    # release_cache()
         
     return generated_text
 

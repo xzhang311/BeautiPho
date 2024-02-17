@@ -50,8 +50,8 @@ def ui():
                         st.session_state['segmentation']['mask'] = mask
                     st.image(mask)
                     # Delete the model object.
-                    del_model(st.session_state['segmentation']['predictor'])
-                    del_model(st.session_state['segmentation']['model'])
+                    del(st.session_state['segmentation']['predictor'])
+                    del(st.session_state['segmentation']['model'])
                     release_cache()
                     st.session_state['segmentation_done'] = True
                 st.sidebar.success("Done ! ")
@@ -68,14 +68,17 @@ def ui():
                                         st.session_state['segmentation']['mask'])
                     background_prompt = get_background_description(st)
                     st.text(background_prompt)
-                    del_model(st.session_state['caption']['processor'])
-                    del_model(st.session_state['caption']['model'])
+                    del(st.session_state['caption'])
                     release_cache()
+                    background_prompt = "In the middle of a field at sunset."
                     init_inpainting_models(st)
                     image_inpaint = inpainting_image(st, st.session_state['segmentation']['image'],
                                      st.session_state['segmentation']['mask'],
                                      background_prompt)
                     st.image(image_inpaint)
+                    st.session_state['inpainting_done'] = True
+                    del st.session_state['inpainting']['pipe']
+                    release_cache()
                     st.session_state['inpainting_done'] = True
                 st.sidebar.success("Done ! ")
 
