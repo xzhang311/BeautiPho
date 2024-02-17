@@ -1,9 +1,10 @@
 import time
-import numpy as np
 import streamlit as st
 from PIL import Image
-from utils import initialize_ground_sam, exe_ground_sam
-
+from tools.utils import (del_model, release_cache)
+from tools.image_segmentation import (init_segment_models, exe_ground_sam)
+from tools.image_captioning import (init_caption_models, get_background_description)
+from tools.image_inpainting import (init_inpainting_models, inpainting_image)
 st.set_page_config(layout="wide")
 
 def ui():
@@ -14,47 +15,78 @@ def ui():
         st.subheader("Implementation")
         st.write("From the sidebar import image and select any method,algorithm to perform segmentation on your image")
 
-    # Sidebar
-
     # Model import
     with st.container():
         st.sidebar.header("Import image: ")
-        file = st.sidebar.file_uploader("Upload your file:", ['png', 'jpg', 'jpeg'], accept_multiple_files=False)
-
+        image_path = st.sidebar.file_uploader("Upload your file:", ['png', 'jpg', 'jpeg'], accept_multiple_files=False)
+        if image_path is not None:
+            image = Image.open(image_path).convert("RGB")
+        
         if 'imported' not in st.session_state:
             if st.sidebar.button("Import"):
                 st.session_state['imported'] = True
                 with st.spinner("Importing image...."):
                     time.sleep(1)
                 st.sidebar.success("Imported successfully")
-                st.sidebar.image(file)
+                st.sidebar.image(image)
         else:
-            st.sidebar.image(file)
+            st.sidebar.image(image)
 
-    # Search for
+    # Segment for
     with st.container():
-        st.sidebar.header("Search for: ")
+        st.sidebar.header("Segment for: ")
         prompt = st.sidebar.text_input('Provide prompt', 'Human')
 
-    # Model
+    # Segmentation Model
     with st.container():
-        if st.sidebar.button("OK"):
-            if file is None:
+        if st.sidebar.button("Segment target"):
+            if image_path is None:
                 st.sidebar.error("Please upload an image first.")
             else:
                 with st.spinner("Performing Segmentation...."):
-                    mask = exe_ground_sam(file, prompt, st.session_state['predictor'], st.session_state['model'])
+                    init_segment_models(st, image)
+                    mask = exe_ground_sam(image, prompt, st.session_state['segmentation']['predictor'], st.session_state['segmentation']['model'])
+                    if 'mask' not in st.session_state['segmentation']:
+                        st.session_state['segmentation']['mask'] = mask
                     st.image(mask)
+                    # Delete the model object.
+                    del_model(st.session_state['segmentation']['predictor'])
+                    del_model(st.session_state['segmentation']['model'])
+                    release_cache()
+                    st.session_state['segmentation_done'] = True
                 st.sidebar.success("Done ! ")
 
-def init_models():
-    if 'predictor' not in st.session_state or \
-        'model' not in st.session_state:
-        predictor, model, device = initialize_ground_sam()    
-        st.session_state['predictor'] = predictor
-        st.session_state['model'] = model
-        st.session_state['device'] = device
+    # Inpaint background
+    with st.container():
+        if st.sidebar.button("Inpaint background"):
+            if st.session_state['segmentation_done'] != True:
+                st.sidebar.error("Please segment the image first.")
+            else:
+                with st.spinner("Performing Inpainting...."):
+                    init_caption_models(st, 
+                                        st.session_state['segmentation']['image'],
+                                        st.session_state['segmentation']['mask'])
+                    background_prompt = get_background_description(st)
+                    st.text(background_prompt)
+                    del_model(st.session_state['caption']['processor'])
+                    del_model(st.session_state['caption']['model'])
+                    release_cache()
+                    init_inpainting_models(st)
+                    image_inpaint = inpainting_image(st, st.session_state['segmentation']['image'],
+                                     st.session_state['segmentation']['mask'],
+                                     background_prompt)
+                    st.image(image_inpaint)
+                    st.session_state['inpainting_done'] = True
+                st.sidebar.success("Done ! ")
+
+def init_status():
+    if 'segmentation_done' not in st.session_state:
+        st.session_state['segmentation_done'] = False
+
+    if 'inpainting_done' not in st.session_state:
+        st.session_state['inpainting_done'] = False
+        
 
 if __name__ == "__main__":
-    init_models();
     ui()
+    
