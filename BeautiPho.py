@@ -4,7 +4,8 @@ from PIL import Image
 from tools.utils import (del_model, release_cache)
 from tools.image_segmentation import (init_segment_models, exe_ground_sam)
 from tools.image_captioning import (init_caption_models, get_background_description)
-from tools.image_inpainting import (init_inpainting_models, inpainting_image)
+from tools.image_inpainting_sd import (init_inpainting_models_sd, inpainting_image_sd)
+from tools.image_inpainting_lama import (init_inpainting_models_lama, inpainting_image_lama)
 st.set_page_config(layout="wide")
 
 def ui():
@@ -58,6 +59,7 @@ def ui():
 
     # Inpaint background
     with st.container():
+        inpainting_model_selection = st.sidebar.selectbox("Inpainting model", ("SD", "LAMA"))
         if st.sidebar.button("Inpaint background"):
             if st.session_state['segmentation_done'] != True:
                 st.sidebar.error("Please segment the image first.")
@@ -70,13 +72,25 @@ def ui():
                     st.text(background_prompt)
                     del(st.session_state['caption'])
                     release_cache()
-                    init_inpainting_models(st)
-                    image_inpaint = inpainting_image(st, st.session_state['segmentation']['image'],
-                                     st.session_state['segmentation']['mask'],
-                                     background_prompt)
+                    
+                    if inpainting_model_selection == 'SD':
+                        init_inpainting_models_sd(st)
+                        image_inpaint = inpainting_image_sd(st, st.session_state['segmentation']['image'],
+                                        st.session_state['segmentation']['mask'],
+                                        background_prompt)
+                    else:
+                        init_inpainting_models_lama(st)
+                        image_inpaint = inpainting_image_lama(st, st.session_state['segmentation']['image'],
+                                        st.session_state['segmentation']['mask'])
+                        
                     st.image(image_inpaint)
                     st.session_state['inpainting_done'] = True
-                    del st.session_state['inpainting']['pipe']
+                    
+                    if inpainting_model_selection == 'SD':
+                        del st.session_state['inpainting']['pipe']
+                    else:
+                        del st.session_state['inpainting']['model']
+                        
                     release_cache()
                     st.session_state['inpainting_done'] = True
                 st.sidebar.success("Done ! ")
