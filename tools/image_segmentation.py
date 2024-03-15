@@ -136,9 +136,11 @@ def exe_ground_sam(image, text_prompt, predictor, model, device="cuda"):
         multimask_output = False,
     )
     
+    masks = masks.to(torch.float16)
+    mask = torch.sum(masks, axis = 0)
+    mask = mask.data.cpu().numpy()
     mask_img = torch.zeros(masks.shape[-2:])
-    mask = masks[0]
-    mask_img[mask.cpu().numpy()[0] == True] = 255
+    mask_img[mask[0] >0] = 255
     mask_img = dilate(mask_img.numpy()/255, times = 3) * 255
     mask_img = Image.fromarray(mask_img)
     mask_img = mask_img.convert("L")

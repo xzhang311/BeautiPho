@@ -106,6 +106,11 @@ def prepare_image_mask(image, mask, margin_ratio = 1.1, convex_hull = True):
     np_mask[min_r:max_r, min_c:max_c] = 1.0
     mask = Image.fromarray((np_mask * 255).astype(np.uint8))
     
+    # np_image = np.array(image)
+    # np_image = np_image.astype(np.float32) / 255.0
+    # np_image[min_r:max_r, min_c:max_c] = 1.0
+    # image = Image.fromarray((np_image * 255).astype(np.uint8))
+    
     # crop and pad image and mask to square
     # crop_bbox represents the region of cropped image in the original image
     mid_r, mid_c = (min_r + max_r)//2, (min_c + max_c)//2

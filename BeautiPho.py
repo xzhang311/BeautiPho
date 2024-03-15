@@ -70,7 +70,6 @@ def ui():
                     st.text(background_prompt)
                     del(st.session_state['caption'])
                     release_cache()
-                    background_prompt = "In the middle of a field at sunset."
                     init_inpainting_models(st)
                     image_inpaint = inpainting_image(st, st.session_state['segmentation']['image'],
                                      st.session_state['segmentation']['mask'],
