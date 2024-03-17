@@ -6,6 +6,8 @@ from tools.image_segmentation import (init_segment_models, exe_ground_sam)
 from tools.image_captioning import (init_caption_models, get_background_description)
 from tools.image_inpainting_sd import (init_inpainting_models_sd, inpainting_image_sd)
 from tools.image_inpainting_lama import (init_inpainting_models_lama, inpainting_image_lama)
+from tools.face_replacing import (init_face_replacing_models, exe_insightface)
+
 st.set_page_config(layout="wide")
 
 def ui():
@@ -95,13 +97,65 @@ def ui():
                     st.session_state['inpainting_done'] = True
                 st.sidebar.success("Done ! ")
 
+    # Face Refinement
+    with st.container():
+        st.sidebar.header("Face Refinement: ")
+
+    with st.container():
+        face_image_path = st.sidebar.file_uploader("Upload a face image:", ['png', 'jpg', 'jpeg'], accept_multiple_files=False)
+        if face_image_path is not None:
+            face_image = Image.open(face_image_path).convert("RGB")
+
+        if 'face_imported' not in st.session_state:
+            if st.sidebar.button("Import Face Image"):
+                st.session_state['face_imported'] = True
+                with st.spinner("Importing face image...."):
+                    time.sleep(1)
+                st.sidebar.success("Face image imported successfully")
+                st.sidebar.image(face_image)
+        else:
+            st.sidebar.image(face_image)
+
+
+    # Assuming a function to execute face refinement
+    with st.container():
+        # face_refinement_action = st.sidebar.selectbox("Face Refinement Action:",
+        #                                               ["Choose...", "Replace Face", "Enhance Face Features"])
+        # if face_refinement_action != "Choose...":
+        #     if 'face_refinement_imported' not in st.session_state or not st.session_state['face_refinement_imported']:
+        #         st.sidebar.error("Please upload a face image first.")
+        #     else:
+
+        if st.sidebar.button("Face Replacing"):
+            if face_image_path is None:
+                st.sidebar.error("Please upload a face image first.")
+            else:
+                with st.spinner(f"Performing Face Replacing...."):
+                    init_face_replacing_models(st, image, face_image)
+                    refined = exe_insightface(image, face_image,
+                                              st.session_state['insightface']['app'],
+                                              st.session_state['insightface']['swapper'])
+                    st.image(refined, caption=f"Image after Face Replacing")
+                    # Delete the model object.
+                    del (st.session_state['insightface']['app'])
+                    del (st.session_state['insightface']['swapper'])
+                    release_cache()
+
+                    time.sleep(2)  # Simulate processing time
+                    st.session_state['face_replacing_done'] = True
+                st.sidebar.success("Done ! ")
+
+
 def init_status():
     if 'segmentation_done' not in st.session_state:
         st.session_state['segmentation_done'] = False
 
     if 'inpainting_done' not in st.session_state:
         st.session_state['inpainting_done'] = False
-        
+
+    if 'face_replacing_done' not in st.session_state:
+        st.session_state['face_replacing_done'] = False
+
 
 if __name__ == "__main__":
     ui()
