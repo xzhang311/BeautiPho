@@ -2,6 +2,10 @@ LICENSE
 README.md
 pyproject.toml
 setup.py
+/mnt/ebs_xizhn_proj/BeautiPho/models/GroundingDINO/groundingdino/models/GroundingDINO/csrc/cuda_version.cu
+/mnt/ebs_xizhn_proj/BeautiPho/models/GroundingDINO/groundingdino/models/GroundingDINO/csrc/vision.cpp
+/mnt/ebs_xizhn_proj/BeautiPho/models/GroundingDINO/groundingdino/models/GroundingDINO/csrc/MsDeformAttn/ms_deform_attn_cpu.cpp
+/mnt/ebs_xizhn_proj/BeautiPho/models/GroundingDINO/groundingdino/models/GroundingDINO/csrc/MsDeformAttn/ms_deform_attn_cuda.cu
 /mnt/ebs_xizhn_proj/Grounded-Segment-Anything/GroundingDINO/groundingdino/models/GroundingDINO/csrc/cuda_version.cu
 /mnt/ebs_xizhn_proj/Grounded-Segment-Anything/GroundingDINO/groundingdino/models/GroundingDINO/csrc/vision.cpp
 /mnt/ebs_xizhn_proj/Grounded-Segment-Anything/GroundingDINO/groundingdino/models/GroundingDINO/csrc/MsDeformAttn/ms_deform_attn_cpu.cpp
